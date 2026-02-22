@@ -150,9 +150,10 @@
               ]))
 
               # Utilities
-              vim
+              neovim
               tmux
               less
+              lnav
               util-linux
             ];
 
