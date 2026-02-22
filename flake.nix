@@ -36,13 +36,13 @@
                   tag = "ro-store";
                   source = "/nix/store";
                   mountPoint = "/nix/.ro-store";
-                  proto = "virtiofs";
+                  proto = "9p";
                 }
                 {
                   tag = "evidence";
                   source = "./shared";
                   mountPoint = "/evidence";
-                  proto = "virtiofs";
+                  proto = "9p";
                 }
               ];
 
