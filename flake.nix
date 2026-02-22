@@ -1,12 +1,9 @@
 {
   description = "Air-gapped DFIR VM for Hack the Box Sherlock challenges (microvm.nix + QEMU)";
 
-  nixConfig = {
-    extra-substituters = [ "https://microvm.cachix.org" ];
-    extra-trusted-public-keys = [
-      "microvm.cachix.org-1:oXnBc6hRE3eX5rSYdRyMYXnfzcCxC7yKPTbZXALsqys="
-    ];
-  };
+  # Optional: add to ~/.config/nix/nix.conf for faster builds:
+  #   extra-substituters = https://microvm.cachix.org
+  #   extra-trusted-public-keys = microvm.cachix.org-1:oXnBc6hRE3eX5rSYdRyMYXnfzcCxC7yKPTbZXALsqys=
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
