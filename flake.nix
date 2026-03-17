@@ -29,7 +29,12 @@
             microvm = {
               hypervisor = "qemu";
               vcpu = 4;
-              mem = 4096;
+              mem = 8192;
+
+              graphics = {
+                enable = true;
+                backend = "gtk";
+              };
 
               shares = [
                 {
@@ -80,11 +85,52 @@
             users.users.analyst = {
               isNormalUser = true;
               home = "/home/analyst";
-              extraGroups = [ "wheel" ];
+              extraGroups = [ "wheel" "wireshark" ];
             };
 
             security.sudo.wheelNeedsPassword = false;
             services.getty.autologinUser = "analyst";
+
+            # ── Desktop (Sway) ──────────────────────────────────
+
+            programs.sway = {
+              enable = true;
+              wrapperFeatures.gtk = true;
+              extraPackages = with pkgs; [
+                wofi
+                wl-clipboard
+                grim
+                slurp
+                mako
+                i3status
+              ];
+            };
+
+            programs.dconf.enable = true;
+            services.dbus.enable = true;
+            security.polkit.enable = true;
+
+            xdg.portal = {
+              enable = true;
+              wlr.enable = true;
+              extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+              config.common.default = [ "wlr" "gtk" ];
+            };
+
+            programs.wireshark.enable = true;
+
+            fonts.packages = [ pkgs.nerd-fonts.fira-code ];
+
+            environment.sessionVariables = {
+              XDG_CURRENT_DESKTOP = "sway";
+              XDG_SESSION_TYPE = "wayland";
+            };
+
+            environment.loginShellInit = ''
+              if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+                exec sway
+              fi
+            '';
 
             # Ensure correct ownership after volume mount
             systemd.tmpfiles.rules = [
@@ -104,6 +150,7 @@
 
               # Network capture analysis
               wireshark-cli # tshark
+              wireshark     # GUI
               tcpdump
 
               # Malware / pattern matching
@@ -155,6 +202,9 @@
               less
               lnav
               util-linux
+
+              # Terminal (Wayland-native)
+              foot
             ];
 
             # ── MOTD ─────────────────────────────────────────────
@@ -167,10 +217,11 @@
 
                 Evidence:  /evidence       (host: ./shared)
                 Work dir:  /home/analyst   (persistent 8 GB)
+                Desktop:   Sway (Mod+Return → foot, Mod+d → wofi)
 
                 Memory:    vol3
                 Disk:      fls, foremost, testdisk
-                Network:   tshark, tcpdump
+                Network:   wireshark (GUI), tshark, tcpdump
                 Malware:   yara, binwalk, ssdeep, chainsaw
                 Binary:    r2, strings, exiftool, hexyl
                 Python:    pefile, oletools, scapy, impacket,
