@@ -41,7 +41,7 @@
                   tag = "ro-store";
                   source = "/nix/store";
                   mountPoint = "/nix/.ro-store";
-                  proto = "9p";
+                  proto = "virtiofs";
                 }
                 {
                   tag = "evidence";
@@ -211,6 +211,7 @@
             environment.sessionVariables = {
               XDG_CURRENT_DESKTOP = "sway";
               XDG_SESSION_TYPE = "wayland";
+              QT_LOGGING_RULES = "qt.multimedia.*=false";
             };
 
             environment.loginShellInit = ''
@@ -292,6 +293,7 @@
 
               # Terminal (Wayland-native)
               foot
+
             ];
 
             # ── MOTD ─────────────────────────────────────────────
@@ -325,6 +327,34 @@
       };
 
       packages.${system}.default =
-        self.nixosConfigurations.sherlock.config.microvm.declaredRunner;
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          runner = self.nixosConfigurations.sherlock.config.microvm.declaredRunner;
+        in
+        pkgs.writeShellScriptBin "microvm-run" ''
+          rm -f sherlock-virtiofs-ro-store.sock
+
+          # Start virtiofsd directly (no supervisord needed for nix run)
+          ${pkgs.virtiofsd}/bin/virtiofsd \
+            --socket-path=sherlock-virtiofs-ro-store.sock \
+            --shared-dir=/nix/store \
+            --thread-pool-size="$(nproc)" \
+            --posix-acl --xattr &
+          VIRTIOFSD_PID=$!
+          cleanup() { kill "$VIRTIOFSD_PID" 2>/dev/null; wait "$VIRTIOFSD_PID" 2>/dev/null; }
+          trap cleanup EXIT
+
+          # Wait for the virtiofs socket to appear
+          for i in $(seq 1 30); do
+            [ -S sherlock-virtiofs-ro-store.sock ] && break
+            sleep 0.1
+          done
+          if [ ! -S sherlock-virtiofs-ro-store.sock ]; then
+            echo "ERROR: virtiofsd failed to create socket" >&2
+            exit 1
+          fi
+
+          exec ${runner}/bin/microvm-run
+        '';
     };
 }
