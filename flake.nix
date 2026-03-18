@@ -22,7 +22,24 @@
         inherit system;
         modules = [
           microvm.nixosModules.microvm
-          ({ pkgs, ... }: {
+          ({ pkgs, ... }:
+          let
+            # Wireshark's nix store path ships icons/ without index.theme
+            # or icon-theme.cache, causing Qt to brute-force 143 K access()
+            # calls over virtiofs on every startup (~75 s hang).  Bake the
+            # cache into the derivation so Qt does a single hash lookup.
+            wireshark-cached = pkgs.wireshark.overrideAttrs (old: {
+              nativeBuildInputs = (old.nativeBuildInputs or []) ++ [ pkgs.gtk3 ];
+              postFixup = (old.postFixup or "") + ''
+                d="$out/share/icons/hicolor"
+                if [ -d "$d" ]; then
+                  cp ${pkgs.hicolor-icon-theme}/share/icons/hicolor/index.theme "$d/"
+                  gtk-update-icon-cache --force "$d"
+                fi
+              '';
+            });
+          in
+          {
 
             # ── MicroVM ──────────────────────────────────────────
 
@@ -204,9 +221,13 @@
               config.common.default = [ "wlr" "gtk" ];
             };
 
-            programs.wireshark.enable = true;
+            programs.wireshark = {
+              enable = true;
+              package = wireshark-cached;
+            };
 
             fonts.packages = [ pkgs.nerd-fonts.fira-code ];
+            gtk.iconCache.enable = true;
 
             environment.sessionVariables = {
               XDG_CURRENT_DESKTOP = "sway";
@@ -237,8 +258,8 @@
               foremost
 
               # Network capture analysis
-              wireshark-cli # tshark
-              wireshark     # GUI
+              wireshark-cli    # tshark
+              wireshark-cached # GUI (with icon cache)
               tcpdump
 
               # Malware / pattern matching
@@ -290,6 +311,10 @@
               less
               lnav
               util-linux
+              strace
+
+              # Icons (prevents 143K futile access() calls on startup)
+              adwaita-icon-theme
 
               # Terminal (Wayland-native)
               foot
