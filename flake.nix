@@ -28,6 +28,16 @@
             # or icon-theme.cache, causing Qt to brute-force 143 K access()
             # calls over virtiofs on every startup (~75 s hang).  Bake the
             # cache into the derivation so Qt does a single hash lookup.
+            # oletools tests fail because pyparsing deprecation warnings
+            # appear in captured output and the test asserts no "warn" lines.
+            oletools-fixed = pkgs.python3Packages.oletools.overridePythonAttrs (old: {
+              disabledTests = (old.disabledTests or []) ++ [
+                "test_empty_behaviour"
+                "test_rtf_behaviour"
+                "test_text_behaviour"
+              ];
+            });
+
             wireshark-cached = pkgs.wireshark.overrideAttrs (old: {
               nativeBuildInputs = (old.nativeBuildInputs or []) ++ [ pkgs.gtk3 ];
               postFixup = (old.postFixup or "") + ''
@@ -302,7 +312,7 @@
               # Python environment
               (python3.withPackages (ps: with ps; [
                 pefile
-                oletools
+                oletools-fixed
                 yara-python
                 scapy
                 dpkt
