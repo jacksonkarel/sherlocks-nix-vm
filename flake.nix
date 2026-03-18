@@ -233,6 +233,11 @@
               XDG_CURRENT_DESKTOP = "sway";
               XDG_SESSION_TYPE = "wayland";
               QT_LOGGING_RULES = "qt.multimedia.*=false";
+              # Force software cursor — QEMU virtio-gpu flips the
+              # hardware cursor image and misaligns click position.
+              WLR_NO_HARDWARE_CURSORS = "1";
+              XCURSOR_THEME = "Adwaita";
+              XCURSOR_SIZE = "24";
             };
 
             environment.loginShellInit = ''
