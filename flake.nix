@@ -330,6 +330,8 @@
               # Terminal (Wayland-native)
               foot
 
+              claude-code
+
             ];
 
             # ── MOTD ─────────────────────────────────────────────
