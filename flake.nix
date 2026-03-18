@@ -1,5 +1,5 @@
 {
-  description = "Air-gapped DFIR VM for Hack the Box Sherlock challenges (microvm.nix + QEMU)";
+  description = "DFIR VM for Hack the Box Sherlock challenges (microvm.nix + QEMU)";
 
   # Optional: add to ~/.config/nix/nix.conf for faster builds:
   #   extra-substituters = https://microvm.cachix.org
@@ -77,7 +77,13 @@
                 }
               ];
 
-              interfaces = []; # air-gapped — no network
+              interfaces = [
+                {
+                  type = "user";
+                  id = "eth0";
+                  mac = "02:00:00:01:01:01";
+                }
+              ];
             };
 
             # ── Nixpkgs ──────────────────────────────────────────
@@ -89,7 +95,7 @@
 
             system.stateVersion = "24.11";
             networking.hostName = "sherlock";
-            networking.useDHCP = false;
+            networking.useDHCP = true;
             time.timeZone = "UTC";
 
             boot.tmp = {
@@ -347,7 +353,7 @@
                            malduck, dissect, evtx, lnkparse3,
                            python-registry, pandas, ipython
 
-                No network — air-gapped by design
+                Network:   user-mode (outbound NAT)
                 Shutdown:  sudo poweroff
 
               ══════════════════════════════════════════════════════
