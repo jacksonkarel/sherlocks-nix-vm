@@ -89,7 +89,7 @@
             # ── Nixpkgs ──────────────────────────────────────────
 
             nixpkgs.config.allowUnfreePredicate = pkg:
-              builtins.elem (pkgs.lib.getName pkg) [ "volatility3" ];
+              builtins.elem (pkgs.lib.getName pkg) [ "volatility3" "claude-code" ];
 
             # ── System ───────────────────────────────────────────
 
