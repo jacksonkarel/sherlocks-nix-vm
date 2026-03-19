@@ -348,6 +348,8 @@
 
               # Terminal (Wayland-native)
               foot
+              
+              kdePackages.konsole
 
               claude-code
 
