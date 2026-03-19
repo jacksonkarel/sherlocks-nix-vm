@@ -107,6 +107,11 @@
             networking.hostName = "sherlock";
             networking.useDHCP = true;
             time.timeZone = "UTC";
+            # If you don't use a TLS-intercepting proxy, remove proxy-ca.crt
+            security.pki.certificateFiles = [
+              "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+              ./proxy-ca.crt
+            ];
 
             boot.tmp = {
               useTmpfs = true;
@@ -249,6 +254,7 @@
               XDG_CURRENT_DESKTOP = "sway";
               XDG_SESSION_TYPE = "wayland";
               QT_LOGGING_RULES = "qt.multimedia.*=false";
+              NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
               # Force software cursor — QEMU virtio-gpu flips the
               # hardware cursor image and misaligns click position.
               WLR_NO_HARDWARE_CURSORS = "1";
