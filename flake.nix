@@ -332,6 +332,9 @@
                 pandas
               ]))
 
+              # Browser (needed for Claude Code login)
+              firefox
+
               # Utilities
               neovim
               tmux
