@@ -99,7 +99,7 @@
             # ── Nixpkgs ──────────────────────────────────────────
 
             nixpkgs.config.allowUnfreePredicate = pkg:
-              builtins.elem (pkgs.lib.getName pkg) [ "volatility3" "claude-code" ];
+              builtins.elem (pkgs.lib.getName pkg) [ "volatility3" "claude-code" "google-chrome" ];
 
             # ── System ───────────────────────────────────────────
 
@@ -352,6 +352,7 @@
               kdePackages.konsole
 
               claude-code
+              google-chrome
 
             ];
 
