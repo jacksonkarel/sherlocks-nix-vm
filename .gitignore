@@ -3,3 +3,4 @@ result
 sherlock.sock
 sherlock-virtiofs-ro-store.sock*
 shared/
+*.log
