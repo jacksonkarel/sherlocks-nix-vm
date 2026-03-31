@@ -353,6 +353,7 @@
 
               claude-code
               google-chrome
+              sqlite
 
             ];
 
