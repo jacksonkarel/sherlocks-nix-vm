@@ -352,6 +352,7 @@
               kdePackages.konsole
 
               claude-code
+              sqlite
 
             ];
 
