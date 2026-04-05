@@ -11,9 +11,13 @@
       url = "github:astro/microvm.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    claude-code = {
+      url = "github:sadjow/claude-code-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, microvm }:
+  outputs = { self, nixpkgs, microvm, claude-code }:
     let
       system = "x86_64-linux";
     in
@@ -22,7 +26,27 @@
         inherit system;
         modules = [
           microvm.nixosModules.microvm
-          ({ pkgs, ... }:
+          {
+            nixpkgs.overlays = [
+              claude-code.overlays.default
+              (final: prev: {
+                claude-code = prev.symlinkJoin {
+                  name = prev.claude-code.name;
+                  paths = [ prev.claude-code ];
+                  nativeBuildInputs = [ prev.makeWrapper ];
+                  postBuild = ''
+                    rm -f "$out/bin/claude"
+                    makeWrapper ${prev.claude-code}/bin/claude "$out/bin/claude" \
+                      --set-default SSL_CERT_FILE /etc/ssl/certs/ca-certificates.crt \
+                      --set-default NIX_SSL_CERT_FILE /etc/ssl/certs/ca-certificates.crt \
+                      --set-default NODE_EXTRA_CA_CERTS /etc/ssl/certs/ca-certificates.crt \
+                      --set-default NODE_OPTIONS --use-openssl-ca
+                  '';
+                };
+              })
+            ];
+          }
+          ({ pkgs, lib, ... }:
           let
             # Wireshark's nix store path ships icons/ without index.theme
             # or icon-theme.cache, causing Qt to brute-force 143 K access()
@@ -58,10 +82,20 @@
               vcpu = 4;
               mem = 8192;
 
-              graphics = {
-                enable = true;
-                backend = "gtk";
-              };
+              # graphics.enable hardcodes usb-tablet whose button-release
+              # events get lost under wlroots, breaking repeated right-clicks.
+              # We disable built-in graphics and drive display + input via
+              # qemu.extraArgs with virtio input devices instead.
+              # Wrap qemu.package so the optimize pass can't strip GTK.
+              graphics.enable = false;
+              qemu.package = let q = pkgs.qemu_kvm; in q // { override = _: q; };
+
+              qemu.extraArgs = [
+                "-display" "gtk,gl=on"
+                "-device"  "virtio-vga-gl"
+                "-device"  "virtio-keyboard-pci"
+                "-device"  "virtio-tablet-pci"
+              ];
 
               shares = [
                 {
@@ -99,7 +133,7 @@
             # ── Nixpkgs ──────────────────────────────────────────
 
             nixpkgs.config.allowUnfreePredicate = pkg:
-              builtins.elem (pkgs.lib.getName pkg) [ "volatility3" "claude-code" ];
+              builtins.elem (lib.getName pkg) [ "volatility3" "claude-code" ];
 
             # ── System ───────────────────────────────────────────
 
@@ -351,7 +385,7 @@
               
               kdePackages.konsole
 
-              claude-code
+              pkgs.claude-code
               sqlite
 
             ];
