@@ -82,20 +82,10 @@
               vcpu = 4;
               mem = 8192;
 
-              # graphics.enable hardcodes usb-tablet whose button-release
-              # events get lost under wlroots, breaking repeated right-clicks.
-              # We disable built-in graphics and drive display + input via
-              # qemu.extraArgs with virtio input devices instead.
-              # Wrap qemu.package so the optimize pass can't strip GTK.
-              graphics.enable = false;
-              qemu.package = let q = pkgs.qemu_kvm; in q // { override = _: q; };
-
-              qemu.extraArgs = [
-                "-display" "gtk,gl=on"
-                "-device"  "virtio-vga-gl"
-                "-device"  "virtio-keyboard-pci"
-                "-device"  "virtio-tablet-pci"
-              ];
+              graphics = {
+                enable = true;
+                backend = "gtk";
+              };
 
               shares = [
                 {
