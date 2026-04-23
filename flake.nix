@@ -320,6 +320,7 @@
 
               # Windows artifacts
               chainsaw
+              evtx # Rust evtx_dump CLI
 
               # Binary inspection
               file
