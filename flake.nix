@@ -378,6 +378,7 @@
 
               pkgs.claude-code
               sqlite
+              visidata
 
             ];
 
