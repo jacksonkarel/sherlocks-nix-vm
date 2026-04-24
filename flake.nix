@@ -378,7 +378,7 @@
 
               pkgs.claude-code
               sqlite
-              visidata
+              libreoffice
 
             ];
 
